@@ -1,17 +1,48 @@
--- Konfiguration: Koppla din keybind-text till rätt ikonfil
--- Se till att namnen (t.ex. "1", "s-2") matchar exakt vad pfUI visar på knappen
-local iconMapping = {
-    ["1"]   = "button_A",
-    ["2"]   = "button_B",
-    ["3"]   = "button_X",
-    ["4"]   = "button_Y",
-    ["s-1"] = "button_L1_A", -- Exempel för Shift+1
-    ["s-2"] = "button_L1_B",
-    -- Fyll på med fler här...
+-- Mappning för alla 18+ knappar på Steam Deck
+-- Vi utgår från att du har mappat Deck-kontrollerna till siffror och bokstäver i SteamOS
+local textMapping = {
+    -- HUVUDKNAPPAR (Höger sida)
+    ["1"] = "|cff00ff00[A]|r", -- Grön
+    ["2"] = "|cffff0000[B]|r", -- Röd
+    ["3"] = "|cff5555ff[X]|r", -- Blå
+    ["4"] = "|cffffff00[Y]|r", -- Gul
+
+    -- D-PAD / PILAR (Vänster sida)
+    ["5"] = "|cffffffcc[^]|r", -- Upp (D-pad Up)
+    ["6"] = "|cffffffcc[v]|r", -- Ner (D-pad Down)
+    ["7"] = "|cffffffcc[<]|r", -- Vänster (D-pad Left)
+    ["8"] = "|cffffffcc[>]|r", -- Höger (D-pad Right)
+
+   
+    -- KOMBINATIONER (Exempel med r4/Shift som modifier)
+    -- pfUI skriver oftast "s-1" för Shift+1, "c-1" för Ctrl+1
+    ["s-1"] = "|cff00ff00R4+A|r",
+    ["s-2"] = "|cffff0000R4+B|r",
+    ["s-3"] = "|cff5555ffR4+X|r",
+    ["s-4"] = "|cffffff00R4+Y|r",
+    
+    -- D-PAD med modifier
+    ["s-5"] = "|cffffffccR4+^|r",
+    ["s-6"] = "|cffffffccR4+v|r",
+    ["s-7"] = "|cffffffccR4+<|r",
+    ["s-8"] = "|cffffffccR4+>|r",
+
+        -- KOMBINATIONER (Exempel med r5/Shift som modifier)
+    -- pfUI skriver oftast "s-1" för Shift+1, "c-1" för Ctrl+1
+    ["s-1"] = "|cff00ff00R5+A|r",
+    ["s-2"] = "|cffff0000R5+B|r",
+    ["s-3"] = "|cff5555ffR5+X|r",
+    ["s-4"] = "|cffffff00R5+Y|r",
+    
+    -- D-PAD med modifier
+    ["s-5"] = "|cffffffccR5+^|r",
+    ["s-6"] = "|cffffffccR5+v|r",
+    ["s-7"] = "|cffffffccR5+<|r",
+    ["s-8"] = "|cffffffccR5+>|r",
 }
 
-local function UpdatePFUIIcons()
-    -- Loopa igenom pfUI:s actionbars
+local function ApplySteamDeckText()
+    -- Gå igenom pfUI:s alla 6 actionbars
     for bar=1, 6 do
         for btnIdx=1, 12 do
             local buttonName = "pfActionBar"..bar.."Button"..btnIdx
@@ -20,35 +51,35 @@ local function UpdatePFUIIcons()
             if hotkey then
                 local currentText = hotkey:GetText()
                 
-                -- Om texten finns i vår mapping, ersätt den med en ikon-sträng
-                if currentText and iconMapping[currentText] then
-                    local iconPath = "Interface\\AddOns\\pfUI-SteamDeck\\Icons\\" .. iconMapping[currentText]
+                -- Om texten på knappen finns i vår lista, byt ut den
+                if currentText and textMapping[currentText] then
+                    -- Vi sätter en tydlig font och storlek
+                    hotkey:SetFont(STANDARD_TEXT_FONT, 13, "OUTLINE")
+                    hotkey:SetText(textMapping[currentText])
+                    hotkey:SetAlpha(1)
                     
-                    -- Formatet är: |T Sökväg : Bredd : Höjd : X-offset : Y-offset |t
-                    -- Vi sätter 20x20 pixlar som standard, men du kan justera siffrorna nedan
-                    local iconString = "|T" .. iconPath .. ":20:20:0:0|t"
-                    
-                    hotkey:SetText(iconString)
-                    hotkey:SetAlpha(1) -- Se till att den syns
+                    -- Justera positionen lite så det ser centrerat ut i hörnet
+                    hotkey:ClearAllPoints()
+                    hotkey:SetPoint("TOPRIGHT", buttonName, "TOPRIGHT", -2, -2)
                 end
             end
         end
     end
 end
 
--- Skapa en frame för att bevaka när vi behöver uppdatera ikonerna
+-- Kör skriptet när spelet laddas
 local f = CreateFrame("Frame")
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
-f:RegisterEvent("ACTIONBAR_PAGE_CHANGED") -- Om du byter bar (t.ex. Stealth/Stance)
-
+f:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
 f:SetScript("OnEvent", function()
-    -- Vi lägger in en kort delay (0.5s) så pfUI hinner skriva dit sin text först
+    -- Vänta 0.5 sekunder så pfUI hinner rita sina egna knappar först
     local elapsed = 0
     f:SetScript("OnUpdate", function()
         elapsed = elapsed + arg1
         if elapsed > 0.5 then
-            UpdatePFUIIcons()
-            f:SetScript("OnUpdate", nil) -- Stoppa loopen
+            ApplySteamDeckText()
+            f:SetScript("OnUpdate", nil)
         end
     end)
+end)
 end)
