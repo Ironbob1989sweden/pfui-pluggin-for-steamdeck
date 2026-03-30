@@ -1,0 +1,19 @@
+local function ApplyFontIcons()
+    -- Path to your custom font
+    local myFont = "Interface\\AddOns\\pfUI-SteamDeck\\Fonts\\ControllerIcons.ttf"
+    
+    for bar=1, 6 do
+        for btnIdx=1, 12 do
+            local hotkey = getglobal("pfActionBar"..bar.."Button"..btnIdx.."HotKey")
+            if hotkey then
+                -- Set the new font, size, and outline
+                hotkey:SetFont(myFont, 14, "OUTLINE")
+                
+                -- Optional: Change specific text (e.g., change "s-1" to "L1+A")
+                local text = hotkey:GetText()
+                if text == "1" then hotkey:SetText("A") end
+                if text == "2" then hotkey:SetText("B") end
+            end
+        end
+    end
+end
