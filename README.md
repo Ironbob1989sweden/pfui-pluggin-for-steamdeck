@@ -1,7 +1,10 @@
 # pfui-pluggin-for-controllers
 pfui pluggin for controllers
-This pfui pluggin adds some of the steam decks buttons to the spell menu.
-in if u want all my controls and menus.
+This pfui pluggin adds some of the steam decks buttons to the spell menu.</br>
+<br>
+i use pfui to heal and stuf like that so i got it set up for it so to click on portret i need to press and hold alt before right clicking.</br>
+<br>
+If u want all my controls and menus.
 Name your game to 
 <br>
 <img width="616" height="123" alt="image" src="https://github.com/user-attachments/assets/41c54672-09a3-4e6c-96af-87928d9d3d89" />
@@ -10,6 +13,9 @@ Name your game to
 search for ironbob
 </br>
 <img width="568" height="84" alt="image" src="https://github.com/user-attachments/assets/289cbdf7-4e45-4d34-9479-e95fe8297d92" />
+</br>
+<br>
+<img width="259" height="252" alt="image" src="https://github.com/user-attachments/assets/9d34bbb3-d50d-4028-a055-e6c8ef4fcd9c" />
 </br>
 <br>
 
