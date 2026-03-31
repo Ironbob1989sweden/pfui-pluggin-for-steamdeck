@@ -3,6 +3,7 @@ pfui pluggin for controllers
 This pfui pluggin adds some of the steam decks buttons to the spell menu.</br>
 <br>
 i use pfui to heal and stuf like that so i got it set up for it so to click on portret i need to press and hold alt before right clicking.</br>
+its binded to left R4
 <br>
 If u want all my controls and menus.
 Name your game to 
