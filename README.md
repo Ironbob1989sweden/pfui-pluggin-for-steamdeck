@@ -1,6 +1,12 @@
 # pfui-pluggin-for-controllers
 pfui pluggin for controllers
 This pfui pluggin adds some of the steam decks buttons to the spell menu.
+in if u want all my controls and menus.
+Name your game to 
+<img width="616" height="123" alt="image" src="https://github.com/user-attachments/assets/41c54672-09a3-4e6c-96af-87928d9d3d89" />
+
+search for ironbob
+<img width="568" height="84" alt="image" src="https://github.com/user-attachments/assets/289cbdf7-4e45-4d34-9479-e95fe8297d92" />
 
 
 
