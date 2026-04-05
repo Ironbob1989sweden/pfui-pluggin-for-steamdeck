@@ -1,6 +1,7 @@
 # pfui-pluggin-for-controllers
 pfui pluggin for controllers
 This pfui pluggin adds some of the steam decks buttons to the spell menu.</br>
+U can try looking up Ironbob on layouts in steam. And see if u can finde my layout ther or follow line bleow to manuely import it.
 
 1.Go to the addon folder copy the layout,</br>
 <br>
