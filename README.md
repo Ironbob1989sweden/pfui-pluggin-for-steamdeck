@@ -30,7 +30,7 @@ search for ironbob
 </br>
 <br>
 <br>
-If u dont finde it u can download it here and put it in to this location 
+If u dont finde it u can use the file in the addonfolder and put it in to this location 
 </br>
 <br>
 /home/deck/.local/share/Steam/steamapps/common/Steam Controller Configs/16372876/config/turtlewow
