@@ -1,7 +1,7 @@
 local addonName = "pfUI-SteamDeck"
 local iconPath = "Interface\\AddOns\\" .. addonName .. "\\tga\\"
 
--- 1. INITIALIZE CONFIG (Nu med 'true' som standard för show_icons)
+-- 1. INITIALIZE CONFIG
 pfUI_config = pfUI_config or {}
 pfUI_config.pfsd = pfUI_config.pfsd or {}
 if pfUI_config.pfsd.show_icons == nil then pfUI_config.pfsd.show_icons = true end
@@ -16,18 +16,15 @@ local function UpdateButton(btn, iconFile, modFile)
     local mainTex = getglobal(btn:GetName().."FinalMain") or btn:CreateTexture(btn:GetName().."FinalMain", "OVERLAY")
     local modTex = getglobal(btn:GetName().."FinalMod") or btn:CreateTexture(btn:GetName().."FinalMod", "OVERLAY")
 
-    -- Hide default pfUI hotkey text
     local hk = getglobal(btn:GetName().."HotKey")
     if hk then hk:SetAlpha(0) end
 
-    -- GLOBAL TOGGLE: If "Show Icons" is unchecked, hide everything and stop
     if not pfUI_config.pfsd.show_icons then
         mainTex:Hide()
         modTex:Hide()
         return
     end
 
-    -- Draw Modifier (R4/R5)
     if modFile then
         modTex:SetTexture(iconPath .. modFile .. ".tga")
         modTex:SetWidth(iconSize)
@@ -38,7 +35,6 @@ local function UpdateButton(btn, iconFile, modFile)
         modTex:Hide()
     end
 
-    -- Draw Primary Button (A/B/X/Y)
     if iconFile then
         mainTex:SetTexture(iconPath .. iconFile .. ".tga")
         mainTex:SetWidth(iconSize)
@@ -73,79 +69,132 @@ local function Refresh()
     end
 end
 
--- ... (Keep your existing variable declarations and UpdateButton function) ...
+-- 3. CREATE SETTINGS WINDOW
+local settings = CreateFrame("Frame", "PFSD_Settings", UIParent)
+settings:SetWidth(220)
+settings:SetHeight(320) -- Increased for new buttons
+settings:SetPoint("CENTER", 0, 0)
+settings:SetBackdrop({
+    bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
+    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+    tile = true, tileSize = 16, edgeSize = 16,
+    insets = { left = 3, right = 3, top = 3, bottom = 3 }
+})
+settings:SetBackdropColor(0, 0, 0, 0.9)
+settings:SetMovable(true)
+settings:EnableMouse(true)
+settings:RegisterForDrag("LeftButton")
+settings:SetScript("OnDragStart", function() this:StartMoving() end)
+settings:SetScript("OnDragStop", function() this:StopMovingOrSizing() end)
+settings:Hide()
 
--- 3. CREATE SETTINGS WINDOW (Modified with Import Logic)
--- [Inside your settings window creation block]
+-- Title
+local title = settings:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+title:SetPoint("TOP", 0, -10)
+title:SetText("Steam Deck Settings")
 
--- BUTTON: EXPORT (Existing)
+-- Close Button
+local close = CreateFrame("Button", nil, settings, "UIPanelCloseButton")
+close:SetPoint("TOPRIGHT", 2, 2)
+close:SetScript("OnClick", function() settings:Hide() end)
+
+-- Checkbox: Show Icons
+local check = CreateFrame("CheckButton", "PFSD_ShowIconsCheck", settings, "UICheckButtonTemplate")
+check:SetPoint("TOPLEFT", 20, -40)
+getglobal(check:GetName() .. 'Text'):SetText(" Show Action Bar Icons")
+check:SetChecked(pfUI_config.pfsd.show_icons)
+check:SetScript("OnClick", function()
+    pfUI_config.pfsd.show_icons = this:GetChecked()
+    Refresh()
+end)
+
+-- Slider: Size
+local slider = CreateFrame("Slider", "PFSD_Slider", settings, "OptionsSliderTemplate")
+slider:SetPoint("TOP", 0, -100)
+slider:SetWidth(160)
+slider:SetMinMaxValues(10, 40)
+slider:SetValueStep(1)
+slider:SetValue(iconSize)
+getglobal(slider:GetName() .. 'Text'):SetText("Icon Size: " .. iconSize)
+slider:SetScript("OnValueChanged", function()
+    local val = math.floor(this:GetValue())
+    getglobal(this:GetName() .. 'Text'):SetText("Icon Size: " .. val)
+    pfUI_config.pfsd.icon_size = val
+    Refresh()
+end)
+
+-- Button: Update Binds
+local bindBtn = CreateFrame("Button", nil, settings, "UIPanelButtonTemplate")
+bindBtn:SetWidth(180)
+bindBtn:SetHeight(25)
+bindBtn:SetPoint("TOP", 0, -150)
+bindBtn:SetText("Update Key binds")
+bindBtn:SetScript("OnClick", function()
+    for i=1, 8 do
+        SetBinding("SHIFT-"..i, "MULTIACTIONBAR1BUTTON"..i)
+        SetBinding("CTRL-"..i, "MULTIACTIONBAR2BUTTON"..i)
+    end
+    SaveBindings(GetCurrentBindingSet())
+    DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99pfUI-SD:|r Binds updated!")
+end)
+
+-- Profile Export/Import Logic
 local exportBtn = CreateFrame("Button", nil, settings, "UIPanelButtonTemplate")
-exportBtn:SetWidth(90) -- Smaller to fit import next to it
+exportBtn:SetWidth(90)
 exportBtn:SetHeight(25)
 exportBtn:SetPoint("TOPLEFT", bindBtn, "BOTTOMLEFT", 0, -10)
 exportBtn:SetText("Export")
 
--- NEW BUTTON: IMPORT
 local importBtn = CreateFrame("Button", nil, settings, "UIPanelButtonTemplate")
 importBtn:SetWidth(90)
 importBtn:SetHeight(25)
 importBtn:SetPoint("LEFT", exportBtn, "RIGHT", 5, 0)
-importBtn:SetText("Import SD")
+importBtn:SetText("Import")
 
--- THE EXPORT/IMPORT BOX
 local exportBox = CreateFrame("EditBox", "PFSD_ExportBox", settings)
-exportBox:SetHeight(60) -- Taller for easier pasting
+exportBox:SetHeight(80)
 exportBox:SetWidth(180)
 exportBox:SetPoint("TOP", exportBtn, "BOTTOM", 0, -10)
 exportBox:SetFontObject(GameFontHighlightSmall)
 exportBox:SetMultiLine(true)
+exportBox:SetAutoFocus(false)
 exportBox:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1})
 exportBox:SetBackdropColor(0,0,0,1)
-exportBox:SetText("PASTE CODE HERE")
-exportBox:SetScript("OnEditFocusGained", function() this:HighlightText() end)
 exportBox:Hide()
 
--- Logic for Export Button
 exportBtn:SetScript("OnClick", function()
     if exportBox:IsShown() then exportBox:Hide() else 
         exportBox:Show() 
-        -- Fill with current string if you want to export
-        exportBox:SetText("Y3AAZgBVAEkAXwBjAG8AbgBmAGkAZwAgAD0AIAB7...") 
+        exportBox:SetText("Y3AAZgBVAEkAXwBjAG8AbgBmAGkAZwAgAD0AIAB7AAoAIAAgAFsAIgBkAGkAcwBhAGIAbABlAGQAIgBdAAsBDQEPARAB...") 
         exportBox:SetFocus() 
     end
 end)
 
--- Logic for Import Button
 importBtn:SetScript("OnClick", function()
     if not exportBox:IsShown() then
         exportBox:Show()
         exportBox:SetText("")
         exportBox:SetFocus()
-        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99pfUI-SD:|r Paste code into the box and click Import again.")
-        return
-    end
-
-    local rawData = exportBox:GetText()
-    
-    -- Use pfUI's built-in decoder if available
-    -- Note: pfUI uses 'pfUI.api.Base64Decode' and 'loadstring'
-    if pfUI and pfUI.api and pfUI.api.Base64Decode then
-        local decoded = pfUI.api.Base64Decode(rawData)
-        local func = loadstring(decoded)
-        if func then
-            func() -- This executes the "pfUI_config = ..." script inside the string
-            DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99pfUI-SD:|r Profile Imported! Reloading UI...")
-            ReloadUI()
-        else
-            DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99pfUI-SD:|r Error: Invalid Profile Data.")
-        end
+        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99pfUI-SD:|r Paste code then click Import again.")
     else
-        DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99pfUI-SD:|r Error: pfUI API not found.")
+        local rawData = exportBox:GetText()
+        if pfUI and pfUI.api and pfUI.api.Base64Decode then
+            local decoded = pfUI.api.Base64Decode(rawData)
+            local func = loadstring(decoded)
+            if func then
+                func()
+                DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99pfUI-SD:|r Profile Loaded! Reloading...")
+                ReloadUI()
+            else
+                DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99pfUI-SD:|r Error: Invalid Data.")
+            end
+        else
+            DEFAULT_CHAT_FRAME:AddMessage("|cff33ff99pfUI-SD:|r Error: pfUI API not found.")
+        end
     end
 end)
 
--- ... (Rest of your Slash Command and Refresh Loop) ...
--- 4. SLASH COMMAND
+-- 4. SLASH COMMAND (Located AFTER 'settings' is defined)
 SLASH_PFSD1 = "/pfsd"
 SlashCmdList["PFSD"] = function()
     if settings:IsShown() then settings:Hide() else settings:Show() end
